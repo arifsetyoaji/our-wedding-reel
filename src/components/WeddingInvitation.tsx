@@ -60,19 +60,17 @@ const WeddingInvitation = () => {
 
         <Card className="shadow-romantic border-0 bg-card/95 backdrop-blur-sm animate-in fade-in-50 duration-1000 delay-300">
           <div className="p-6 md:p-8">
-            <div className="relative w-full max-w-3xl mx-auto">
-              {/* Video Container with 16:9 Aspect Ratio */}
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
+              <div className="relative w-full max-w-3xl mx-auto">
+              {/* Video Container with 16:9 Aspect Ratio - Perfect fit with no white spaces */}
+              <div className="relative w-full overflow-hidden rounded-lg shadow-elegant" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
                 <video
-                  className="absolute inset-0 w-full h-full rounded-lg shadow-elegant"
+                  className="absolute inset-0 w-full h-full object-cover"
                   controls
                   autoPlay
                   muted
                   preload="auto"
-                  poster="/placeholder.svg"
                 >
                   <source src="/wedding-invitation-video.mp4" type="video/mp4" />
-                  <source src="/wedding-invitation-video.webm" type="video/webm" />
                   <p className="text-muted-foreground text-center py-8">
                     Your browser doesn't support video playback. Please update your browser or 
                     <a href="/wedding-invitation-video.mp4" className="text-primary underline ml-1">

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Heart, MessageCircle, Share2, Send, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Heart, MessageCircle, Share2, Send, X, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ const ReelsInterface = () => {
   const [likes, setLikes] = useState(247);
   const [isLiked, setIsLiked] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
@@ -34,6 +35,7 @@ const ReelsInterface = () => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState({ name: '', message: '' });
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number; y: number }[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
 
   const handleLike = () => {
@@ -66,6 +68,26 @@ const ReelsInterface = () => {
       setLikes(prev => prev - 1);
       setIsLiked(false);
     }
+  };
+
+  const toggleVideoPlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        videoRef.current.play();
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  const handleVideoClick = () => {
+    toggleVideoPlay();
+  };
+
+  const handleVideoDoubleClick = () => {
+    handleLike();
   };
 
   const handleShare = async () => {
@@ -124,15 +146,27 @@ const ReelsInterface = () => {
     <div className="relative w-full h-screen overflow-hidden bg-black">
       {/* Video Background */}
       <video
-        className="absolute inset-0 w-full h-full object-cover"
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover cursor-pointer"
         controls={false}
         autoPlay
         muted
         loop
         playsInline
+        onClick={handleVideoClick}
+        onDoubleClick={handleVideoDoubleClick}
       >
         <source src="/wedding-invitation-video.mp4" type="video/mp4" />
       </video>
+
+      {/* Play/Pause Overlay */}
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20">
+          <div className="bg-black/50 rounded-full p-4 backdrop-blur-sm">
+            <Play className="w-12 h-12 text-white fill-white" />
+          </div>
+        </div>
+      )}
 
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />

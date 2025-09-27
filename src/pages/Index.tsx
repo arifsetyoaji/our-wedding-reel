@@ -1,7 +1,7 @@
-import WeddingInvitation from "@/components/WeddingInvitation";
+import ReelsInterface from "@/components/ReelsInterface";
 
 const Index = () => {
-  return <WeddingInvitation />;
+  return <ReelsInterface />;
 };
 
 export default Index;

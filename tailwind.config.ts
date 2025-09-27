@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'playfair': ['Playfair Display', 'serif'],
+        'inter': ['Inter', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -47,6 +51,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Wedding-specific colors
+        'romantic-pink': "hsl(var(--romantic-pink))",
+        'blush': "hsl(var(--blush))",
+        'cream': "hsl(var(--cream))",
+        'gold': "hsl(var(--gold))",
+        'soft-white': "hsl(var(--soft-white))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -62,6 +72,20 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      backgroundImage: {
+        'gradient-romantic': 'var(--gradient-romantic)',
+        'gradient-sunset': 'var(--gradient-sunset)',
+        'gradient-elegant': 'var(--gradient-elegant)',
+      },
+      boxShadow: {
+        'romantic': 'var(--shadow-romantic)',
+        'elegant': 'var(--shadow-elegant)',
+        'soft': 'var(--shadow-soft)',
+      },
+      transitionTimingFunction: {
+        'romantic': 'var(--transition-romantic)',
+        'elegant': 'var(--transition-elegant)',
       },
       keyframes: {
         "accordion-down": {

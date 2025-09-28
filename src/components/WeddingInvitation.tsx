@@ -67,7 +67,6 @@ const WeddingInvitation = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                   controls
                   autoPlay
-                  muted
                   preload="auto"
                 >
                   <source src="/wedding-invitation-video.mp4" type="video/mp4" />

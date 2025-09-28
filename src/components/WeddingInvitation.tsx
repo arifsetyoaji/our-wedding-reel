@@ -67,7 +67,6 @@ const WeddingInvitation = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                   controls
                   autoPlay
-                  muted
                   preload="auto"
                 >
                   <source src="/wedding-invitation-video.mp4" type="video/mp4" />
@@ -81,7 +80,7 @@ const WeddingInvitation = () => {
               </div>
             </div>
 
-            {/* Share Section */}
+            {/* Share Section 
             <div className="mt-8 text-center space-y-4">
               <p className="font-inter text-muted-foreground text-sm md:text-base">
                 Share our joy with family and friends
@@ -116,7 +115,7 @@ const WeddingInvitation = () => {
                 </Button>
               </div>
             </div>
-          </div>
+          </div> */}
         </Card>
 
         {/* Footer */}

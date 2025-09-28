@@ -21,13 +21,13 @@ const ReelsInterface = () => {
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
-      name: 'Sarah & Mike',
+      name: 'Tri Hestiningsih & Sutartono Family',
       message: 'Congratulations! Can\'t wait to celebrate with you both! 💕',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
     },
     {
       id: '2', 
-      name: 'The Johnson Family',
+      name: 'Mukromi & Abdul Aziz Family',
       message: 'Such a beautiful invitation! Wishing you both endless happiness! 🥂',
       timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
     }
@@ -161,9 +161,9 @@ const ReelsInterface = () => {
 
       {/* Play/Pause Overlay */}
       {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20">
-          <div className="bg-black/50 rounded-full p-4 backdrop-blur-sm">
-            <Play className="w-12 h-12 text-white fill-white" />
+        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20" onClick={handleVideoClick}>
+          <div className="bg-black/50 rounded-full p-2 backdrop-blur-sm">
+            <Play className="w-6 h-6 text-white fill-white" />
           </div>
         </div>
       )}
@@ -188,7 +188,7 @@ const ReelsInterface = () => {
       {/* Top Title */}
       <div className="absolute top-6 left-6 right-6 z-10">
         <div className="text-white">
-          <h1 className="font-playfair text-2xl font-semibold mb-2">
+          <h1 className="font-playfair text-2xl font-semibold mb-1">
             Shabrina & Arif
           </h1>
           <p className="font-inter text-sm opacity-80">Wedding Invitation</p>
@@ -196,12 +196,12 @@ const ReelsInterface = () => {
       </div>
 
       {/* Right Side Actions */}
-      <div className="absolute right-4 bottom-32 flex flex-col items-center space-y-6 z-10">
+      <div className="absolute right-4 bottom-64 flex flex-col items-center space-y-6 z-10">
         {/* Like Button */}
         <div className="flex flex-col items-center">
           <Button
             onClick={handleLike}
-            className={`w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300 ${
+            className={`w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300 ${
               showHeartAnimation ? 'animate-heart-bounce' : ''
             } ${isLiked ? 'animate-pulse-ring' : ''}`}
             size="icon"
@@ -219,7 +219,7 @@ const ReelsInterface = () => {
         <div className="flex flex-col items-center">
           <Button
             onClick={() => setShowComments(true)}
-            className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
+            className="w-9 h-9 rounded-full bg-black/30 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
             size="icon"
           >
             <MessageCircle className="w-6 h-6 text-white" />
@@ -227,17 +227,17 @@ const ReelsInterface = () => {
           <span className="text-white text-xs mt-1 font-medium">{comments.length}</span>
         </div>
 
-        {/* Share Button */}
+        {/* Share Button 
         <div className="flex flex-col items-center">
           <Button
             onClick={handleShare}
-            className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
+            className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
             size="icon"
           >
             <Share2 className="w-6 h-6 text-white" />
           </Button>
         </div>
-      </div>
+      </div> */}
 
       {/* Bottom Content */}
       <div className="absolute bottom-6 left-6 right-20 z-10">

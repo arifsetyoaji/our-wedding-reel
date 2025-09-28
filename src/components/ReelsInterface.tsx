@@ -14,7 +14,7 @@ interface Comment {
 }
 
 const ReelsInterface = () => {
-  const [likes, setLikes] = useState(2025);
+  const [likes, setLikes] = useState(247);
   const [isLiked, setIsLiked] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -150,18 +150,19 @@ const ReelsInterface = () => {
         className="absolute inset-0 w-full h-full object-cover cursor-pointer"
         controls={false}
         autoPlay
+        muted
         loop
         playsInline
         onClick={handleVideoClick}
         onDoubleClick={handleVideoDoubleClick}
       >
-        <source src="/Undangan_Digital_Shabrina&Arif.mp4" type="video/mp4" />
+        <source src="/wedding-invitation-video.mp4" type="video/mp4" />
       </video>
 
       {/* Play/Pause Overlay */}
       {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20"
-          <div className="bg-black/80 rounded-full p-4 backdrop-blur-sm">
+        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20">
+          <div className="bg-black/50 rounded-full p-4 backdrop-blur-sm">
             <Play className="w-12 h-12 text-white fill-white" />
           </div>
         </div>
@@ -187,7 +188,7 @@ const ReelsInterface = () => {
       {/* Top Title */}
       <div className="absolute top-6 left-6 right-6 z-10">
         <div className="text-white">
-          <h1 className="font-playfair text-3xl font-semibold mb-2">
+          <h1 className="font-playfair text-2xl font-semibold mb-2">
             Shabrina & Arif
           </h1>
           <p className="font-inter text-sm opacity-80">Wedding Invitation</p>
@@ -200,13 +201,13 @@ const ReelsInterface = () => {
         <div className="flex flex-col items-center">
           <Button
             onClick={handleLike}
-            className={`w-12 h-12 rounded-full bg-black/20 backdrop-blur-sm border-0 hover:bg-black/50 transition-all duration-300 ${
+            className={`w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300 ${
               showHeartAnimation ? 'animate-heart-bounce' : ''
             } ${isLiked ? 'animate-pulse-ring' : ''}`}
             size="icon"
           >
             <Heart 
-              className={`w-9 h-9 transition-colors duration-300 ${
+              className={`w-6 h-6 transition-colors duration-300 ${
                 isLiked ? 'text-red-500 fill-red-500' : 'text-white'
               }`} 
             />
@@ -218,10 +219,10 @@ const ReelsInterface = () => {
         <div className="flex flex-col items-center">
           <Button
             onClick={() => setShowComments(true)}
-            className="w-12 h-12 rounded-full bg-black/20 backdrop-blur-sm border-0 hover:bg-black/50 transition-all duration-300"
+            className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
             size="icon"
           >
-            <MessageCircle className="w-9 h-9 text-white" />
+            <MessageCircle className="w-6 h-6 text-white" />
           </Button>
           <span className="text-white text-xs mt-1 font-medium">{comments.length}</span>
         </div>

@@ -160,8 +160,8 @@ const ReelsInterface = () => {
 
       {/* Play/Pause Overlay */}
       {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20" onClick={handleVideoClick}>
-          <div className="bg-black/50 rounded-full p-2 backdrop-blur-sm">
+        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20">
+          <div className="bg-black/10 rounded-full p-2 backdrop-blur-sm">
             <Play className="w-9 h-9 text-white fill-white" />
           </div>
         </div>
@@ -200,13 +200,13 @@ const ReelsInterface = () => {
         <div className="flex flex-col items-center">
           <Button
             onClick={handleLike}
-            className={`w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300 ${
+            className={`w-12 h-12 rounded-full bg-black/10 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300 ${
               showHeartAnimation ? 'animate-heart-bounce' : ''
             } ${isLiked ? 'animate-pulse-ring' : ''}`}
             size="icon"
           >
             <Heart 
-              className={`w-9 h-9 transition-colors duration-300 ${
+              className={`w-10 h-10 transition-colors duration-300 ${
                 isLiked ? 'text-red-500 fill-red-500' : 'text-white'
               }`} 
             />
@@ -218,10 +218,10 @@ const ReelsInterface = () => {
         <div className="flex flex-col items-center">
           <Button
             onClick={() => setShowComments(true)}
-            className="w-12 h-12 rounded-full bg-black/30 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
+            className="w-12 h-12 rounded-full bg-black/10 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
             size="icon"
           >
-            <MessageCircle className="w-9 h-9 text-white" />
+            <MessageCircle className="w-10 h-10 text-white" />
           </Button>
           <span className="text-white text-xs mt-1 font-medium">{comments.length}</span>
         </div>

@@ -13,7 +13,7 @@ interface Comment {
   timestamp: Date;
 }
 
-const ASPECT_RATIO = 16 / 9;
+const ASPECT_RATIO = 9 / 16;
 
 const ReelsInterface = () => {
   const [likes, setLikes] = useState(247);
@@ -23,13 +23,13 @@ const ReelsInterface = () => {
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
-      name: 'Sarah & Mike',
+      name: 'Tri Hestiningsih & Sutartono Family',
       message: 'Congratulations! Can\'t wait to celebrate with you both! 💕',
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
     },
     {
       id: '2', 
-      name: 'The Johnson Family',
+      name: 'Mukromi & Abdul Aziz Family',
       message: 'Such a beautiful invitation! Wishing you both endless happiness! 🥂',
       timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
     }
@@ -79,11 +79,10 @@ const ReelsInterface = () => {
         </video>
 
         {!isPlaying && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 cursor-pointer pointer-events-auto">
-            <div className="bg-black/60 rounded-full p-4 mb-3">
-              <Play className="w-12 h-12 text-white fill-white" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/40 cursor-pointer pointer-events-auto" onClick={handleVideoClick}>
+            <div className="bg-black/60 rounded-full p-2 mb-3">
+              <Play className="w-6 h-6 text-white fill-white" />
             </div>
-            <span className="text-white text-lg font-semibold drop-shadow">Click to Play</span>
           </div>
         )}
 

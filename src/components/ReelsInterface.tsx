@@ -155,7 +155,7 @@ const ReelsInterface = () => {
         onClick={handleVideoClick}
         onDoubleClick={handleVideoDoubleClick}
       >
-        <source src="/wedding-invitation-video.mp4" type="video/mp4" />
+        <source src="/Undangan_Digital_Shabrina&Arif.mp4" type="video/mp4" />
       </video>
 
       {/* Play/Pause Overlay */}

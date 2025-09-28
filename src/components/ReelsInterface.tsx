@@ -153,7 +153,7 @@ const ReelsInterface = () => {
         loop
         playsInline
         onClick={handleVideoClick}
-        {/* onDoubleClick={handleVideoDoubleClick} */}
+        onDoubleClick={handleVideoDoubleClick}
       >
         <source src="/wedding-invitation-video.mp4" type="video/mp4" />
       </video>

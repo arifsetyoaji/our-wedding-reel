@@ -178,7 +178,17 @@ const ReelsInterface = () => {
 
       {/* Play/Pause Overlay */}
       {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20">
+        <div
+          className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 cursor-pointer"
+          onClick={toggleVideoPlay}
+          onDoubleClick={handleVideoDoubleClick}
+          role="button"
+          aria-label="Resume video"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') toggleVideoPlay();
+          }}
+        >
           <div className="bg-black/50 rounded-full p-4 backdrop-blur-sm">
             <Play className="w-12 h-12 text-white fill-white" />
           </div>

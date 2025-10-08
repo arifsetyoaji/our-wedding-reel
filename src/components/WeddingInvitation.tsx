@@ -60,7 +60,7 @@ const WeddingInvitation = () => {
 
         <Card className="shadow-romantic border-0 bg-card/95 backdrop-blur-sm animate-in fade-in-50 duration-1000 delay-300">
           <div className="p-6 md:p-8">
-              <div className="relative w-full max-w-3xl mx-auto">
+            <div className="relative w-full max-w-3xl mx-auto">
               {/* Video Container with 16:9 Aspect Ratio - Perfect fit with no white spaces */}
               <div className="relative w-full overflow-hidden rounded-lg shadow-elegant" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
                 <video
@@ -79,43 +79,7 @@ const WeddingInvitation = () => {
                 </video>
               </div>
             </div>
-
-            {/* Share Section 
-            <div className="mt-8 text-center space-y-4">
-              <p className="font-inter text-muted-foreground text-sm md:text-base">
-                Share our joy with family and friends
-              </p>
-              <div className="flex justify-center gap-4">
-                <Button
-                  onClick={shareInvitation}
-                  variant="wedding-share"
-                  className="font-inter font-medium"
-                  size="lg"
-                >
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Share Invitation
-                </Button>
-                <Button
-                  onClick={copyToClipboard}
-                  variant="wedding-copy"
-                  className="font-inter font-medium"
-                  size="lg"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Link
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div> */}
+          </div>
         </Card>
 
         {/* Footer */}

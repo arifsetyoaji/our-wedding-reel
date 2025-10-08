@@ -14,10 +14,17 @@ interface Comment {
 }
 
 const ReelsInterface = () => {
+  // Video and interaction states
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Like states
   const [likes, setLikes] = useState(247);
   const [isLiked, setIsLiked] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number; y: number }[]>([]);
+  
+  // Comment states
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
@@ -34,9 +41,19 @@ const ReelsInterface = () => {
   ]);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState({ name: '', message: '' });
-  const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number; y: number }[]>([]);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  
   const { toast } = useToast();
+
+  // Auto-play video on mount
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().then(() => {
+        setIsPlaying(true);
+      }).catch(() => {
+        setIsPlaying(false);
+      });
+    }
+  }, []);
 
   const handleLike = () => {
     if (!isLiked) {
@@ -70,15 +87,15 @@ const ReelsInterface = () => {
     }
   };
 
+  // Video control handlers
   const toggleVideoPlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        videoRef.current.play();
-        setIsPlaying(true);
-      }
+    if (!videoRef.current) return;
+    
+    if (videoRef.current.paused) {
+      videoRef.current.play().then(() => setIsPlaying(true));
+    } else {
+      videoRef.current.pause();
+      setIsPlaying(false);
     }
   };
 
@@ -168,9 +185,6 @@ const ReelsInterface = () => {
         </div>
       )}
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
-
       {/* Floating Hearts Animation */}
       {floatingHearts.map((heart) => (
         <div
@@ -185,13 +199,16 @@ const ReelsInterface = () => {
         </div>
       ))}
 
+      {/* Top Gradient Overlay for Title */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/70 via-black/40 to-transparent z-[5]" />
+
       {/* Top Title */}
       <div className="absolute top-6 left-6 right-6 z-10">
-        <div className="text-white">
+        <div className="text-white drop-shadow-lg">
           <h1 className="font-playfair text-2xl font-semibold mb-2">
             Shabrina & Arif
           </h1>
-          <p className="font-inter text-sm opacity-80">Wedding Invitation</p>
+          <p className="font-inter text-sm opacity-90">Wedding Invitation</p>
         </div>
       </div>
 
@@ -239,13 +256,16 @@ const ReelsInterface = () => {
         </div>
       </div>
 
+      {/* Bottom Gradient Overlay for Content */}
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/70 via-black/40 to-transparent z-[5]" />
+
       {/* Bottom Content */}
       <div className="absolute bottom-6 left-6 right-20 z-10">
-        <div className="text-white">
-          <p className="font-inter text-sm mb-2 opacity-90">
+        <div className="text-white drop-shadow-lg">
+          <p className="font-inter text-sm mb-2 opacity-95">
             Join us as we celebrate our love and begin our journey together! 💕
           </p>
-          <p className="font-inter text-xs opacity-70">
+          <p className="font-inter text-xs opacity-80">
             We can't wait to celebrate with you! #ShabrinaArif2024
           </p>
         </div>

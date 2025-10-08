@@ -67,20 +67,6 @@ const ReelsInterface = () => {
     };
   }, []);
 
-  // Auto-play video and audio on mount
-  useEffect(() => {
-    if (videoRef.current && audioRef.current) {
-      Promise.all([
-        videoRef.current.play(),
-        audioRef.current.play()
-      ]).then(() => {
-        setIsPlaying(true);
-      }).catch(() => {
-        setIsPlaying(false);
-      });
-    }
-  }, []);
-
   const fetchComments = async () => {
     setIsLoadingComments(true);
     const { data, error } = await supabase
@@ -137,12 +123,24 @@ const ReelsInterface = () => {
   };
 
   // Video and audio control handlers
-  const toggleVideoPlay = () => {
+  const toggleVideoPlay = async () => {
     if (!videoRef.current || !audioRef.current) return;
     
     if (videoRef.current.paused) {
-      videoRef.current.play().then(() => setIsPlaying(true));
-      audioRef.current.play();
+      try {
+        // Sync audio to video time
+        audioRef.current.currentTime = videoRef.current.currentTime;
+        
+        // Start both together
+        await Promise.all([
+          videoRef.current.play(),
+          audioRef.current.play()
+        ]);
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('Error playing media:', error);
+        setIsPlaying(false);
+      }
     } else {
       videoRef.current.pause();
       audioRef.current.pause();
@@ -235,10 +233,10 @@ const ReelsInterface = () => {
         ref={videoRef}
         className="absolute inset-0 w-full h-full object-cover cursor-pointer"
         controls={false}
-        autoPlay
         muted
         loop
         playsInline
+        preload="auto"
         onClick={handleVideoClick}
         onDoubleClick={handleVideoDoubleClick}
       >
@@ -296,6 +294,7 @@ const ReelsInterface = () => {
         ref={audioRef}
         loop
         muted={isMuted}
+        preload="auto"
       >
         <source src="/wedding-audio.mp3" type="audio/mpeg" />
       </audio>

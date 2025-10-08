@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Heart, MessageCircle, Share2, Send, X, Play, Pause } from "lucide-react";
+import { Heart, MessageCircle, Share2, Send, X, Play, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Comment {
   id: string;
@@ -14,9 +15,11 @@ interface Comment {
 }
 
 const ReelsInterface = () => {
-  // Video and interaction states
+  // Video and audio states
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   
   // Like states
   const [likes, setLikes] = useState(247);
@@ -25,35 +28,81 @@ const ReelsInterface = () => {
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number; y: number }[]>([]);
   
   // Comment states
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: '1',
-      name: 'Sarah & Mike',
-      message: 'Congratulations! Can\'t wait to celebrate with you both! 💕',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-    },
-    {
-      id: '2', 
-      name: 'The Johnson Family',
-      message: 'Such a beautiful invitation! Wishing you both endless happiness! 🥂',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
-    }
-  ]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState({ name: '', message: '' });
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
   
   const { toast } = useToast();
 
-  // Auto-play video on mount
+  // Fetch comments from database
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().then(() => {
+    fetchComments();
+    
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('comments')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'comments'
+        },
+        (payload) => {
+          const newComment = payload.new as Comment;
+          setComments(prev => [
+            { 
+              ...newComment, 
+              timestamp: new Date(newComment.timestamp) 
+            }, 
+            ...prev
+          ]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Auto-play video and audio on mount
+  useEffect(() => {
+    if (videoRef.current && audioRef.current) {
+      Promise.all([
+        videoRef.current.play(),
+        audioRef.current.play()
+      ]).then(() => {
         setIsPlaying(true);
       }).catch(() => {
         setIsPlaying(false);
       });
     }
   }, []);
+
+  const fetchComments = async () => {
+    setIsLoadingComments(true);
+    const { data, error } = await supabase
+      .from('comments')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching comments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load comments",
+        variant: "destructive"
+      });
+    } else if (data) {
+      setComments(data.map(comment => ({
+        ...comment,
+        timestamp: new Date(comment.created_at)
+      })));
+    }
+    setIsLoadingComments(false);
+  };
 
   const handleLike = () => {
     if (!isLiked) {
@@ -87,15 +136,24 @@ const ReelsInterface = () => {
     }
   };
 
-  // Video control handlers
+  // Video and audio control handlers
   const toggleVideoPlay = () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !audioRef.current) return;
     
     if (videoRef.current.paused) {
       videoRef.current.play().then(() => setIsPlaying(true));
+      audioRef.current.play();
     } else {
       videoRef.current.pause();
+      audioRef.current.pause();
       setIsPlaying(false);
+    }
+  };
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
     }
   };
 
@@ -129,20 +187,31 @@ const ReelsInterface = () => {
     }
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.name.trim() && newComment.message.trim()) {
-      const comment: Comment = {
-        id: Date.now().toString(),
-        name: newComment.name.trim(),
-        message: newComment.message.trim(),
-        timestamp: new Date(),
-      };
-      setComments(prev => [comment, ...prev]);
-      setNewComment({ name: '', message: '' });
-      toast({
-        title: "💬 Comment Added!",
-        description: "Thank you for your congratulations!",
-      });
+      const { error } = await supabase
+        .from('comments')
+        .insert([
+          {
+            name: newComment.name.trim(),
+            message: newComment.message.trim(),
+          }
+        ]);
+
+      if (error) {
+        console.error('Error adding comment:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add comment. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        setNewComment({ name: '', message: '' });
+        toast({
+          title: "💬 Comment Added!",
+          description: "Thank you for your congratulations!",
+        });
+      }
     }
   };
 
@@ -222,8 +291,32 @@ const ReelsInterface = () => {
         </div>
       </div>
 
+      {/* Audio Element */}
+      <audio
+        ref={audioRef}
+        loop
+        muted={isMuted}
+      >
+        <source src="/wedding-audio.mp3" type="audio/mpeg" />
+      </audio>
+
+      {/* Sound Control Button - Bottom Right */}
+      <div className="absolute right-4 bottom-6 z-10">
+        <Button
+          onClick={toggleMute}
+          className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm border-0 hover:bg-black/70 transition-all duration-300"
+          size="icon"
+        >
+          {isMuted ? (
+            <VolumeX className="w-6 h-6 text-white" />
+          ) : (
+            <Volume2 className="w-6 h-6 text-white" />
+          )}
+        </Button>
+      </div>
+
       {/* Right Side Actions */}
-      <div className="absolute right-4 bottom-32 flex flex-col items-center space-y-6 z-10">
+      <div className="absolute right-4 bottom-24 flex flex-col items-center space-y-6 z-10">
         {/* Like Button */}
         <div className="flex flex-col items-center">
           <Button
@@ -328,7 +421,12 @@ const ReelsInterface = () => {
 
               {/* Comments List */}
               <div className="max-h-60 overflow-y-auto space-y-4">
-                {comments.map((comment) => (
+                {isLoadingComments ? (
+                  <div className="text-center text-gray-500 py-4">Loading comments...</div>
+                ) : comments.length === 0 ? (
+                  <div className="text-center text-gray-500 py-4">No comments yet. Be the first!</div>
+                ) : (
+                  comments.map((comment) => (
                   <div key={comment.id} className="border-b border-gray-100 pb-3 last:border-0">
                     <div className="flex items-start justify-between mb-1">
                       <h4 className="font-inter font-medium text-sm text-gray-900">
@@ -342,7 +440,8 @@ const ReelsInterface = () => {
                       {comment.message}
                     </p>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </Card>

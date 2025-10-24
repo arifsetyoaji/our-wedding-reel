@@ -368,7 +368,7 @@ const ReelsInterface = () => {
             Join us as we celebrate our love and begin our journey together! 💕
           </p>
           <p className="font-inter text-xs opacity-80">
-            We can't wait to celebrate with you! #ShabrinaArif 14/11/25
+            We can't wait to celebrate with you! #ShabrinaArif2024
           </p>
         </div>
       </div>

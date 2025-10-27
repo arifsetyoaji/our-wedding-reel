@@ -21,6 +21,7 @@ const ReelsInterface = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isReady, setIsReady] = useState(false);
+  const [assetsLoaded, setAssetsLoaded] = useState({ video: false, audio: false });
   
   // Video and audio states
   const [isPlaying, setIsPlaying] = useState(false);
@@ -42,39 +43,93 @@ const ReelsInterface = () => {
   
   const { toast } = useToast();
 
-  // Start loading after envelope is opened and preload assets
+  // Preload assets immediately on mount
+  useEffect(() => {
+    const handleVideoLoad = () => {
+      console.log('Video loaded successfully');
+      setAssetsLoaded(prev => ({ ...prev, video: true }));
+    };
+
+    const handleAudioLoad = () => {
+      console.log('Audio loaded successfully');
+      setAssetsLoaded(prev => ({ ...prev, audio: true }));
+    };
+
+    const handleVideoError = (e: Event) => {
+      console.error('Video load error:', e);
+      // Still mark as loaded to prevent infinite loading
+      setAssetsLoaded(prev => ({ ...prev, video: true }));
+    };
+
+    const handleAudioError = (e: Event) => {
+      console.error('Audio load error:', e);
+      // Still mark as loaded to prevent infinite loading
+      setAssetsLoaded(prev => ({ ...prev, audio: true }));
+    };
+
+    const video = videoRef.current;
+    const audio = audioRef.current;
+
+    if (video) {
+      video.addEventListener('canplaythrough', handleVideoLoad);
+      video.addEventListener('error', handleVideoError);
+      video.load();
+    }
+
+    if (audio) {
+      audio.addEventListener('canplaythrough', handleAudioLoad);
+      audio.addEventListener('error', handleAudioError);
+      audio.load();
+    }
+
+    return () => {
+      if (video) {
+        video.removeEventListener('canplaythrough', handleVideoLoad);
+        video.removeEventListener('error', handleVideoError);
+      }
+      if (audio) {
+        audio.removeEventListener('canplaythrough', handleAudioLoad);
+        audio.removeEventListener('error', handleAudioError);
+      }
+    };
+  }, []);
+
+  // Smart loading progress that waits for assets
   useEffect(() => {
     if (!isLoading) return;
-
-    // Start preloading video and audio
-    if (videoRef.current) {
-      videoRef.current.load();
-    }
-    if (audioRef.current) {
-      audioRef.current.load();
-    }
 
     const duration = 7000; // 7 seconds
     const interval = 50; // Update every 50ms
     const steps = duration / interval;
     const increment = 100 / steps;
     let currentProgress = 0;
+    let hasFinished = false;
 
     const timer = setInterval(() => {
       currentProgress += increment;
-      if (currentProgress >= 100) {
-        setLoadingProgress(100);
-        clearInterval(timer);
-        setTimeout(() => {
-          setIsReady(true);
-        }, 300);
+      
+      // Cap at 95% until assets are ready
+      if (currentProgress >= 95 && !assetsLoaded.video && !assetsLoaded.audio) {
+        setLoadingProgress(95);
+        return;
+      }
+      
+      if (currentProgress >= 100 || (currentProgress >= 90 && assetsLoaded.video && assetsLoaded.audio)) {
+        if (!hasFinished) {
+          hasFinished = true;
+          setLoadingProgress(100);
+          clearInterval(timer);
+          setTimeout(() => {
+            setIsReady(true);
+          }, 300);
+        }
       } else {
         setLoadingProgress(currentProgress);
       }
     }, interval);
 
     return () => clearInterval(timer);
-  }, [isLoading]);
+  }, [isLoading, assetsLoaded]);
 
   // Fetch comments from database
   useEffect(() => {
@@ -169,6 +224,21 @@ const ReelsInterface = () => {
     
     if (videoRef.current.paused) {
       try {
+        // Ensure video is ready
+        if (videoRef.current.readyState < 3) {
+          console.log('Video not ready, waiting...');
+          await new Promise((resolve) => {
+            const checkReady = () => {
+              if (videoRef.current && videoRef.current.readyState >= 3) {
+                resolve(true);
+              } else {
+                setTimeout(checkReady, 100);
+              }
+            };
+            checkReady();
+          });
+        }
+
         // Sync audio to video time
         audioRef.current.currentTime = videoRef.current.currentTime;
         
@@ -180,7 +250,19 @@ const ReelsInterface = () => {
         setIsPlaying(true);
       } catch (error) {
         console.error('Error playing media:', error);
-        setIsPlaying(false);
+        // Try playing video only if audio fails
+        try {
+          await videoRef.current.play();
+          setIsPlaying(true);
+        } catch (videoError) {
+          console.error('Error playing video:', videoError);
+          setIsPlaying(false);
+          toast({
+            title: "Playback Error",
+            description: "Unable to play video. Please refresh the page.",
+            variant: "destructive"
+          });
+        }
       }
     } else {
       videoRef.current.pause();
@@ -349,8 +431,10 @@ const ReelsInterface = () => {
         preload="auto"
         onClick={handleVideoClick}
         onDoubleClick={handleVideoDoubleClick}
+        crossOrigin="anonymous"
       >
         <source src="/wedding-invitation-video.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
       </video>
 
       {/* Play/Pause Overlay */}
@@ -405,8 +489,10 @@ const ReelsInterface = () => {
         loop
         muted={isMuted}
         preload="auto"
+        crossOrigin="anonymous"
       >
         <source src="/wedding-audio.mp3" type="audio/mpeg" />
+        Your browser does not support the audio tag.
       </audio>
 
       {/* Sound Control Button - Bottom Right */}

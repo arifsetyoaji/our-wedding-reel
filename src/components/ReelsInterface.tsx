@@ -15,6 +15,12 @@ interface Comment {
 }
 
 const ReelsInterface = () => {
+  // Loading and envelope states
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showEnvelope, setShowEnvelope] = useState(false);
+  const [envelopeOpened, setEnvelopeOpened] = useState(false);
+  
   // Video and audio states
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -34,6 +40,46 @@ const ReelsInterface = () => {
   const [isLoadingComments, setIsLoadingComments] = useState(true);
   
   const { toast } = useToast();
+
+  // Preload assets
+  useEffect(() => {
+    const loadAssets = async () => {
+      let videoLoaded = false;
+      let audioLoaded = false;
+
+      const updateProgress = () => {
+        const progress = ((videoLoaded ? 50 : 0) + (audioLoaded ? 50 : 0));
+        setLoadingProgress(progress);
+        
+        if (videoLoaded && audioLoaded) {
+          setTimeout(() => {
+            setIsLoading(false);
+            setShowEnvelope(true);
+          }, 500);
+        }
+      };
+
+      // Load video
+      if (videoRef.current) {
+        videoRef.current.load();
+        videoRef.current.addEventListener('canplaythrough', () => {
+          videoLoaded = true;
+          updateProgress();
+        }, { once: true });
+      }
+
+      // Load audio
+      if (audioRef.current) {
+        audioRef.current.load();
+        audioRef.current.addEventListener('canplaythrough', () => {
+          audioLoaded = true;
+          updateProgress();
+        }, { once: true });
+      }
+    };
+
+    loadAssets();
+  }, []);
 
   // Fetch comments from database
   useEffect(() => {
@@ -225,6 +271,77 @@ const ReelsInterface = () => {
     if (diffInDays === 1) return '1 day ago';
     return `${diffInDays} days ago`;
   };
+
+  const handleOpenEnvelope = () => {
+    setEnvelopeOpened(true);
+    setTimeout(() => {
+      setShowEnvelope(false);
+    }, 800);
+  };
+
+  // Loading Screen
+  if (isLoading) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="font-playfair text-3xl font-semibold text-rose-900 mb-8">
+            Shabrina & Arif
+          </div>
+          <div className="w-64 h-2 bg-rose-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-rose-400 to-pink-500 transition-all duration-500"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+          <p className="font-inter text-sm text-rose-700">Loading your invitation...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Envelope Screen
+  if (showEnvelope) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
+        <div 
+          className={`cursor-pointer transition-all duration-700 ${
+            envelopeOpened ? 'scale-150 opacity-0' : 'scale-100 opacity-100 hover:scale-105'
+          }`}
+          onClick={handleOpenEnvelope}
+        >
+          <div className="relative">
+            {/* Envelope body */}
+            <div className="w-80 h-52 bg-white rounded-lg shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 border-4 border-rose-200 rounded-lg" />
+              
+              {/* Envelope flap */}
+              <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-rose-300 to-pink-400 transition-transform duration-500 origin-top ${
+                envelopeOpened ? '-translate-y-full rotate-[-15deg]' : ''
+              }`}>
+                <div className="absolute bottom-0 left-0 right-0 h-8 bg-rose-200" 
+                  style={{ clipPath: 'polygon(0 0, 50% 100%, 100% 0)' }} 
+                />
+              </div>
+
+              {/* Invitation card peeking */}
+              <div className="absolute inset-4 top-8 bg-gradient-to-br from-rose-100 to-pink-100 rounded flex flex-col items-center justify-center p-6">
+                <div className="text-rose-900 text-center space-y-3">
+                  <h2 className="font-playfair text-3xl font-bold">S & A</h2>
+                  <div className="text-6xl">💍</div>
+                  <p className="font-inter text-sm">Tap to open</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Wax seal */}
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full shadow-lg flex items-center justify-center">
+              <Heart className="w-8 h-8 text-white fill-white" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black">

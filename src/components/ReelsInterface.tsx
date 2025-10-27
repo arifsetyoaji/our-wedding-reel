@@ -16,10 +16,11 @@ interface Comment {
 
 const ReelsInterface = () => {
   // Loading and envelope states
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [showEnvelope, setShowEnvelope] = useState(false);
+  const [showEnvelope, setShowEnvelope] = useState(true);
   const [envelopeOpened, setEnvelopeOpened] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isReady, setIsReady] = useState(false);
   
   // Video and audio states
   const [isPlaying, setIsPlaying] = useState(false);
@@ -41,45 +42,31 @@ const ReelsInterface = () => {
   
   const { toast } = useToast();
 
-  // Preload assets
+  // Start loading after envelope is opened
   useEffect(() => {
-    const loadAssets = async () => {
-      let videoLoaded = false;
-      let audioLoaded = false;
+    if (!isLoading) return;
 
-      const updateProgress = () => {
-        const progress = ((videoLoaded ? 50 : 0) + (audioLoaded ? 50 : 0));
-        setLoadingProgress(progress);
-        
-        if (videoLoaded && audioLoaded) {
-          setTimeout(() => {
-            setIsLoading(false);
-            setShowEnvelope(true);
-          }, 500);
-        }
-      };
+    const duration = 7000; // 7 seconds
+    const interval = 50; // Update every 50ms
+    const steps = duration / interval;
+    const increment = 100 / steps;
+    let currentProgress = 0;
 
-      // Load video
-      if (videoRef.current) {
-        videoRef.current.load();
-        videoRef.current.addEventListener('canplaythrough', () => {
-          videoLoaded = true;
-          updateProgress();
-        }, { once: true });
+    const timer = setInterval(() => {
+      currentProgress += increment;
+      if (currentProgress >= 100) {
+        setLoadingProgress(100);
+        clearInterval(timer);
+        setTimeout(() => {
+          setIsReady(true);
+        }, 300);
+      } else {
+        setLoadingProgress(currentProgress);
       }
+    }, interval);
 
-      // Load audio
-      if (audioRef.current) {
-        audioRef.current.load();
-        audioRef.current.addEventListener('canplaythrough', () => {
-          audioLoaded = true;
-          updateProgress();
-        }, { once: true });
-      }
-    };
-
-    loadAssets();
-  }, []);
+    return () => clearInterval(timer);
+  }, [isLoading]);
 
   // Fetch comments from database
   useEffect(() => {
@@ -276,28 +263,9 @@ const ReelsInterface = () => {
     setEnvelopeOpened(true);
     setTimeout(() => {
       setShowEnvelope(false);
+      setIsLoading(true);
     }, 800);
   };
-
-  // Loading Screen
-  if (isLoading) {
-    return (
-      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center space-y-6">
-          <div className="font-playfair text-3xl font-semibold text-rose-900 mb-8">
-            Shabrina & Arif
-          </div>
-          <div className="w-64 h-2 bg-rose-200 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-rose-400 to-pink-500 transition-all duration-500"
-              style={{ width: `${loadingProgress}%` }}
-            />
-          </div>
-          <p className="font-inter text-sm text-rose-700">Loading your invitation...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Envelope Screen
   if (showEnvelope) {
@@ -338,6 +306,26 @@ const ReelsInterface = () => {
               <Heart className="w-8 h-8 text-white fill-white" />
             </div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading Screen
+  if (isLoading && !isReady) {
+    return (
+      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="font-playfair text-3xl font-semibold text-rose-900 mb-8">
+            Shabrina & Arif
+          </div>
+          <div className="w-64 h-2 bg-rose-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-rose-400 to-pink-500 transition-all duration-500"
+              style={{ width: `${loadingProgress}%` }}
+            />
+          </div>
+          <p className="font-inter text-sm text-rose-700">Loading your invitation...</p>
         </div>
       </div>
     );

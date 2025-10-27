@@ -42,9 +42,17 @@ const ReelsInterface = () => {
   
   const { toast } = useToast();
 
-  // Start loading after envelope is opened
+  // Start loading after envelope is opened and preload assets
   useEffect(() => {
     if (!isLoading) return;
+
+    // Start preloading video and audio
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+    if (audioRef.current) {
+      audioRef.current.load();
+    }
 
     const duration = 7000; // 7 seconds
     const interval = 50; // Update every 50ms
@@ -270,20 +278,20 @@ const ReelsInterface = () => {
   // Envelope Screen
   if (showEnvelope) {
     return (
-      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
+      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center transition-opacity duration-700">
         <div 
-          className={`cursor-pointer transition-all duration-700 ${
+          className={`cursor-pointer transition-all duration-1000 ease-out ${
             envelopeOpened ? 'scale-150 opacity-0' : 'scale-100 opacity-100 hover:scale-105'
           }`}
           onClick={handleOpenEnvelope}
         >
           <div className="relative">
             {/* Envelope body */}
-            <div className="w-80 h-52 bg-white rounded-lg shadow-2xl relative overflow-hidden">
+            <div className="w-80 h-52 bg-white rounded-lg shadow-2xl relative overflow-hidden transition-all duration-700">
               <div className="absolute inset-0 border-4 border-rose-200 rounded-lg" />
               
               {/* Envelope flap */}
-              <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-rose-300 to-pink-400 transition-transform duration-500 origin-top ${
+              <div className={`absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-rose-300 to-pink-400 transition-all duration-700 origin-top ${
                 envelopeOpened ? '-translate-y-full rotate-[-15deg]' : ''
               }`}>
                 <div className="absolute bottom-0 left-0 right-0 h-8 bg-rose-200" 
@@ -300,11 +308,6 @@ const ReelsInterface = () => {
                 </div>
               </div>
             </div>
-
-            {/* Wax seal */}
-            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full shadow-lg flex items-center justify-center">
-              <Heart className="w-8 h-8 text-white fill-white" />
-            </div>
           </div>
         </div>
       </div>
@@ -314,14 +317,14 @@ const ReelsInterface = () => {
   // Loading Screen
   if (isLoading && !isReady) {
     return (
-      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center">
+      <div className="relative w-full h-screen overflow-hidden bg-gradient-to-br from-rose-50 to-pink-50 flex items-center justify-center animate-fade-in">
         <div className="text-center space-y-6">
           <div className="font-playfair text-3xl font-semibold text-rose-900 mb-8">
             Shabrina & Arif
           </div>
           <div className="w-64 h-2 bg-rose-200 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-rose-400 to-pink-500 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-rose-400 to-pink-500 transition-all duration-300 ease-out"
               style={{ width: `${loadingProgress}%` }}
             />
           </div>
@@ -332,7 +335,9 @@ const ReelsInterface = () => {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-black">
+    <div className={`relative w-full h-screen overflow-hidden bg-black transition-opacity duration-1000 ${
+      isReady ? 'opacity-100' : 'opacity-0'
+    }`}>
       {/* Video Background */}
       <video
         ref={videoRef}

@@ -45,27 +45,27 @@ const ReelsInterface = () => {
   
   const { toast } = useToast();
 
-  // Preload assets immediately on mount
+  // Optimized asset loading for low-end devices and slow connections
   useEffect(() => {
     const handleVideoLoad = () => {
-      console.log('Video loaded successfully');
+      console.log('Video ready to play');
       setAssetsLoaded(prev => ({ ...prev, video: true }));
     };
 
     const handleAudioLoad = () => {
-      console.log('Audio loaded successfully');
+      console.log('Audio ready to play');
       setAssetsLoaded(prev => ({ ...prev, audio: true }));
     };
 
     const handleVideoError = (e: Event) => {
       console.error('Video load error:', e);
-      // Still mark as loaded to prevent infinite loading
+      // Mark as loaded to prevent blocking
       setAssetsLoaded(prev => ({ ...prev, video: true }));
     };
 
     const handleAudioError = (e: Event) => {
       console.error('Audio load error:', e);
-      // Still mark as loaded to prevent infinite loading
+      // Mark as loaded to prevent blocking
       setAssetsLoaded(prev => ({ ...prev, audio: true }));
     };
 
@@ -73,24 +73,26 @@ const ReelsInterface = () => {
     const audio = audioRef.current;
 
     if (video) {
-      video.addEventListener('canplaythrough', handleVideoLoad);
+      // Use 'canplay' instead of 'canplaythrough' for faster response on slow connections
+      video.addEventListener('canplay', handleVideoLoad);
       video.addEventListener('error', handleVideoError);
       video.load();
     }
 
     if (audio) {
-      audio.addEventListener('canplaythrough', handleAudioLoad);
+      // Use 'canplay' instead of 'canplaythrough' for faster response
+      audio.addEventListener('canplay', handleAudioLoad);
       audio.addEventListener('error', handleAudioError);
       audio.load();
     }
 
     return () => {
       if (video) {
-        video.removeEventListener('canplaythrough', handleVideoLoad);
+        video.removeEventListener('canplay', handleVideoLoad);
         video.removeEventListener('error', handleVideoError);
       }
       if (audio) {
-        audio.removeEventListener('canplaythrough', handleAudioLoad);
+        audio.removeEventListener('canplay', handleAudioLoad);
         audio.removeEventListener('error', handleAudioError);
       }
     };
@@ -210,51 +212,52 @@ const ReelsInterface = () => {
     }
   };
 
-  // Video and audio control handlers
+  // Video and audio control handlers - optimized for low bandwidth
   const toggleVideoPlay = async () => {
     if (!videoRef.current || !audioRef.current) return;
     
     if (videoRef.current.paused) {
       try {
-        // Ensure video is ready
-        if (videoRef.current.readyState < 3) {
-          console.log('Video not ready, waiting...');
-          await new Promise((resolve) => {
-            const checkReady = () => {
-              if (videoRef.current && videoRef.current.readyState >= 3) {
-                resolve(true);
-              } else {
-                setTimeout(checkReady, 100);
-              }
-            };
-            checkReady();
-          });
+        // For low-end devices, start playing even if not fully buffered
+        // This allows playback to start faster on slow connections
+        if (videoRef.current.readyState < 2) {
+          console.log('Video buffering, starting playback anyway...');
         }
 
         // Sync audio to video time
         audioRef.current.currentTime = videoRef.current.currentTime;
         
-        // Start both together
-        await Promise.all([
-          videoRef.current.play(),
-          audioRef.current.play()
-        ]);
-        setIsPlaying(true);
-      } catch (error) {
-        console.error('Error playing media:', error);
-        // Try playing video only if audio fails
+        // Start both together with better error handling
         try {
-          await videoRef.current.play();
+          await Promise.all([
+            videoRef.current.play(),
+            audioRef.current.play()
+          ]);
           setIsPlaying(true);
-        } catch (videoError) {
-          console.error('Error playing video:', videoError);
-          setIsPlaying(false);
-          toast({
-            title: "Playback Error",
-            description: "Unable to play video. Please refresh the page.",
-            variant: "destructive"
-          });
+        } catch (error) {
+          // Fallback: try playing them separately
+          console.warn('Parallel playback failed, trying sequentially:', error);
+          try {
+            await videoRef.current.play();
+            try {
+              await audioRef.current.play();
+            } catch (audioError) {
+              console.warn('Audio playback failed, continuing with video only:', audioError);
+            }
+            setIsPlaying(true);
+          } catch (videoError) {
+            console.error('Video playback failed:', videoError);
+            setIsPlaying(false);
+            toast({
+              title: "Playback Error",
+              description: "Unable to play video. Please check your connection.",
+              variant: "destructive"
+            });
+          }
         }
+      } catch (error) {
+        console.error('Error in playback handler:', error);
+        setIsPlaying(false);
       }
     } else {
       videoRef.current.pause();
@@ -447,7 +450,7 @@ const ReelsInterface = () => {
               style={{ width: `${loadingProgress}%` }}
             />
           </div>
-          <p className="font-inter text-sm text-rose-700">Loading your invitation...</p>
+          <p className="font-inter text-sm text-rose-700">Loading your announcement...</p>
         </div>
       </div>
     );
@@ -465,7 +468,7 @@ const ReelsInterface = () => {
         muted
         loop
         playsInline
-        preload="auto"
+        preload="metadata"
         onClick={handleVideoClick}
         onDoubleClick={handleVideoDoubleClick}
         crossOrigin="anonymous"
@@ -516,7 +519,7 @@ const ReelsInterface = () => {
           <h1 className="font-playfair text-2xl font-semibold mb-2">
             Shabrina & Arif
           </h1>
-          <p className="font-inter text-sm opacity-90">Wedding Invitation</p>
+          <p className="font-inter text-sm opacity-90">Wedding Announcement</p>
         </div>
       </div>
 
@@ -525,7 +528,7 @@ const ReelsInterface = () => {
         ref={audioRef}
         loop
         muted={isMuted}
-        preload="auto"
+        preload="metadata"
         crossOrigin="anonymous"
       >
         <source src="/wedding-audio.mp3" type="audio/mpeg" />
@@ -598,10 +601,10 @@ const ReelsInterface = () => {
       <div className="absolute bottom-6 left-6 right-20 z-10">
         <div className="text-white drop-shadow-lg">
           <p className="font-inter text-sm mb-2 opacity-95">
-            Join us as we celebrate our love and begin our journey together! 💕
+            We're excited to announce our upcoming wedding, celebrated together with our families.
           </p>
           <p className="font-inter text-xs opacity-80">
-            We can't wait to celebrate with you! #ShabrinaArif 14/11/25
+            Your prayers and support mean so much to us. Thank you for sending your love and blessings our way. ✨💍✨ #ShabrinaArif 14/11/25
           </p>
         </div>
       </div>

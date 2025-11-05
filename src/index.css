@@ -135,4 +135,14 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Force light mode - ignore system dark mode preference */
+  .dark {
+    color-scheme: light;
+  }
+  
+  /* Ensure all components use light mode colors */
+  .dark * {
+    color-scheme: light;
+  }
 }

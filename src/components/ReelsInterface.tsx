@@ -40,6 +40,8 @@ const ReelsInterface = () => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState({ name: '', message: '' });
   const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [swipedCommentId, setSwipedCommentId] = useState<string | null>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   
   const { toast } = useToast();
 
@@ -94,7 +96,7 @@ const ReelsInterface = () => {
     };
   }, []);
 
-  // Smart loading progress that waits for assets
+  // Fixed loading progress - always completes in 7 seconds
   useEffect(() => {
     if (!isLoading) return;
 
@@ -103,33 +105,23 @@ const ReelsInterface = () => {
     const steps = duration / interval;
     const increment = 100 / steps;
     let currentProgress = 0;
-    let hasFinished = false;
 
     const timer = setInterval(() => {
       currentProgress += increment;
       
-      // Cap at 95% until assets are ready
-      if (currentProgress >= 95 && !assetsLoaded.video && !assetsLoaded.audio) {
-        setLoadingProgress(95);
-        return;
-      }
-      
-      if (currentProgress >= 100 || (currentProgress >= 90 && assetsLoaded.video && assetsLoaded.audio)) {
-        if (!hasFinished) {
-          hasFinished = true;
-          setLoadingProgress(100);
-          clearInterval(timer);
-          setTimeout(() => {
-            setIsReady(true);
-          }, 300);
-        }
+      if (currentProgress >= 100) {
+        setLoadingProgress(100);
+        clearInterval(timer);
+        setTimeout(() => {
+          setIsReady(true);
+        }, 300);
       } else {
         setLoadingProgress(currentProgress);
       }
     }, interval);
 
     return () => clearInterval(timer);
-  }, [isLoading, assetsLoaded]);
+  }, [isLoading]);
 
   // Fetch comments from database
   useEffect(() => {
@@ -334,6 +326,51 @@ const ReelsInterface = () => {
         });
       }
     }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Error deleting comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete comment.",
+        variant: "destructive"
+      });
+    } else {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      setSwipedCommentId(null);
+      toast({
+        title: "Comment Deleted",
+        description: "The comment has been removed.",
+      });
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, commentId: string) => {
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, commentId: string) => {
+    if (!touchStart) return;
+
+    const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    const deltaX = touchStart.x - touchEnd.x;
+    const deltaY = Math.abs(touchStart.y - touchEnd.y);
+
+    // Swipe left detection (deltaX > 50 and mostly horizontal)
+    if (deltaX > 50 && deltaY < 30) {
+      setSwipedCommentId(commentId);
+    } else if (deltaX < -30) {
+      // Swipe right to close
+      setSwipedCommentId(null);
+    }
+
+    setTouchStart(null);
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -622,18 +659,38 @@ const ReelsInterface = () => {
                   <div className="text-center text-gray-500 py-4">No comments yet. Be the first!</div>
                 ) : (
                   comments.map((comment) => (
-                  <div key={comment.id} className="border-b border-gray-100 pb-3 last:border-0">
-                    <div className="flex items-start justify-between mb-1">
-                      <h4 className="font-inter font-medium text-sm text-gray-900">
-                        {comment.name}
-                      </h4>
-                      <span className="text-xs text-gray-500">
-                        {formatTimeAgo(comment.timestamp)}
-                      </span>
+                  <div 
+                    key={comment.id} 
+                    className="relative border-b border-gray-100 pb-3 last:border-0 overflow-hidden"
+                    onTouchStart={(e) => handleTouchStart(e, comment.id)}
+                    onTouchEnd={(e) => handleTouchEnd(e, comment.id)}
+                  >
+                    <div 
+                      className={`transition-transform duration-300 ${
+                        swipedCommentId === comment.id ? '-translate-x-20' : 'translate-x-0'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-1">
+                        <h4 className="font-inter font-medium text-sm text-gray-900">
+                          {comment.name}
+                        </h4>
+                        <span className="text-xs text-gray-500">
+                          {formatTimeAgo(comment.timestamp)}
+                        </span>
+                      </div>
+                      <p className="font-inter text-sm text-gray-700 leading-relaxed">
+                        {comment.message}
+                      </p>
                     </div>
-                    <p className="font-inter text-sm text-gray-700 leading-relaxed">
-                      {comment.message}
-                    </p>
+                    {swipedCommentId === comment.id && (
+                      <Button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 h-auto"
+                        size="sm"
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </div>
                   ))
                 )}
